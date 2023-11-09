@@ -2,6 +2,7 @@ package chiprometheus
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -109,9 +110,11 @@ func (c Middleware) patternHandler(next http.Handler) http.Handler {
 		}
 		routePattern := strings.Join(rctx.RoutePatterns, "")
 		routePattern = strings.Replace(routePattern, "/*/", "/", -1)
+		statusCode := ww.Status()
+		statusString := strconv.Itoa(statusCode) // Convert integer to string
 
-		c.reqs.WithLabelValues(http.StatusText(ww.Status()), r.Method, routePattern).Inc()
-		c.latency.WithLabelValues(http.StatusText(ww.Status()), r.Method, routePattern).Observe(float64(time.Since(start).Nanoseconds()) / 1000000)
+		c.reqs.WithLabelValues(statusString, r.Method, routePattern).Inc()
+		c.latency.WithLabelValues(statusString, r.Method, routePattern).Observe(float64(time.Since(start).Nanoseconds()) / 1000000)
 	}
 	return http.HandlerFunc(fn)
 }
